@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import BlockedIPNumber, SMSTicket
+from .models import BlockedIPNumber, SMSTicket, FailedTries
 from .serializers import SMSTicketSerializer
 from .utils import ip_extractor
 
@@ -59,3 +59,19 @@ class CheckNumberView(BlockHandlerMixin, APIView):
         # todo
         print('sending SMS')
         print(f'Code is: {code}')
+
+
+class CodeVerificationView(BlockHandlerMixin, APIView):
+    def post(self, request, *args, **kwargs):
+        code = request.data.get('code')
+
+        sms_objs = SMSTicket.objects.filter(number=self.number, code=code)
+        if sms_objs.exists():
+            if sms_objs.latest('created').is_valid():
+                return Response({'message': _('correct code')})
+            sms_objs.delete()
+            return Response({'message': _('provided code is not valid anymore. please request new one')})
+
+        FailedTries.objects.create(ip=ip_extractor(self.request), number=self.number, type='sms')
+        return Response({'message': _('provided code is wrong please try again.')},
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
