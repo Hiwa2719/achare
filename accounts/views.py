@@ -1,15 +1,17 @@
 import random
 
+from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import BlockedIPNumber, SMSTicket, FailedTries
-from .serializers import SMSTicketSerializer
+from .serializers import SMSTicketSerializer, UserSerializer
 from .utils import ip_extractor
 
 User = get_user_model()
@@ -70,8 +72,34 @@ class CodeVerificationView(BlockHandlerMixin, APIView):
             if sms_objs.latest('created').is_valid():
                 return Response({'message': _('correct code')})
             sms_objs.delete()
-            return Response({'message': _('provided code is not valid anymore. please request new one')})
+            return self.expired_code()
 
         FailedTries.objects.create(ip=ip_extractor(self.request), number=self.number, type='sms')
         return Response({'message': _('provided code is wrong please try again.')},
                         status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    def expired_code(self):
+        return Response({'message': _('provided code is not valid anymore. please request new one')},
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+
+
+class SignupView(CodeVerificationView):
+    def post(self, request, *args, **kwargs):
+        code = request.data.get('code')
+
+        sms_objs = SMSTicket.objects.filter(number=self.number, code=code)
+        valid_code = sms_objs.first().is_valid() if sms_objs.exists() else False
+        if not valid_code:
+            return self.expired_code()
+
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            sms_objs.delete()
+            return self.is_valid(serializer)
+        return Response({'message': serializer.errors}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    def is_valid(self, serializer):
+        user = serializer.save()
+        token = Token.objects.create(user=user)
+        return Response({'token': token.key})
+
