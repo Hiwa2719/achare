@@ -103,3 +103,16 @@ class SignupView(CodeVerificationView):
         token = Token.objects.create(user=user)
         return Response({'token': token.key})
 
+
+class LoginView(BlockHandlerMixin, APIView):
+    def post(self, request, *args, **kwargs):
+        password = request.data.get('password')
+
+        user = authenticate(request, username=self.number, password=password)
+        if user:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key})
+
+        FailedTries.objects.create(ip=ip_extractor(request), number=self.number, type='login')
+        return Response({'message': _('provided credentials are wrong please try again.')},
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
