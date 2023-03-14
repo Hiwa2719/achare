@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Q
 from django.db.models.constraints import UniqueConstraint
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -64,3 +65,13 @@ class FailedTries(BaseAbstractModel):
         ('sms', 'sms verification')
     )
     type = models.CharField(default='login', choices=TYPE_CHOICES, max_length=5)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        queryset = self.__class__.objects.filter(Q(ip=self.ip) | Q(number=self.number)).order_by('-created')
+        try:
+            third = list(queryset)[2]
+            if third.created + timedelta(minutes=5) > self.created:
+                BlockedIPNumber.objects.create(ip=self.ip, number=self.number)
+        except IndexError:
+            pass
