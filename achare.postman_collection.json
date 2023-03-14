@@ -1,0 +1,145 @@
+{
+	"info": {
+		"_postman_id": "298c0817-2a60-4cb1-b7fc-96edfd52f99d",
+		"name": "achare",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "check number",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "number",
+							"value": "09906855932",
+							"type": "default"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/accounts/check-number/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"accounts",
+						"check-number",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "code verification",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "number",
+							"value": "09906855932",
+							"type": "default"
+						},
+						{
+							"key": "code",
+							"value": "830675",
+							"type": "default"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/accounts/code-verification/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"accounts",
+						"code-verification",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "signup",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "number",
+							"value": "09906855932",
+							"type": "default"
+						},
+						{
+							"key": "code",
+							"value": "830675",
+							"type": "default"
+						},
+						{
+							"key": "password",
+							"value": "HelloJohn",
+							"type": "default"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/accounts/signup/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"accounts",
+						"signup",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "number",
+							"value": "09906855932",
+							"type": "default"
+						},
+						{
+							"key": "password",
+							"value": "HelloJohnk",
+							"type": "default"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/accounts/login/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"accounts",
+						"login",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
